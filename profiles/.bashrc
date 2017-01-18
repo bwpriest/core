@@ -8,3 +8,6 @@ alias lsd='ls -alF | grep /$'
 alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
+
+# ipython virtualenv safety
+alias ipy="python -c 'import IPython; IPython.terminal.ipapp.launch_new_instance()'"
