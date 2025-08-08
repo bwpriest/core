@@ -1,0 +1,57 @@
+#!/bin/bash
+
+PROJECTNAME=${1}
+SESSIONNAME=${2}
+VENVNAME=${3}
+REPOPATH="/Users/priest2/workspace/${PROJECTNAME}/repos"
+VENVPATH="/Users/priest2/.venvs"
+if [[ -z ${VENVNAME} ]]
+then
+    VENVNAME=${SESSIONNAME}
+fi
+
+
+ONPATH=false
+for i in ${REPOPATH}/*; do
+    if [[ $(basename ${i}) == ${SESSIONNAME} ]]; then
+        ONPATH=true
+        break;
+    fi
+done
+if [ ${ONPATH} = false ]; then
+    echo "Name \"${SESSIONNAME}\" has no corresponding repository on ${REPOPATH} : "
+    ls ${REPOPATH}
+    exit;
+fi
+
+VENVEXISTS=false
+if [[ -d ${VENVPATH}/${VENVNAME} ]]
+then
+    VENVEXISTS=true
+fi
+SESSIONPATH=${REPOPATH}/${SESSIONNAME}
+
+tmux has-session -t $SESSIONNAME &> /dev/null
+
+if [ $? != 0 ]
+then
+    tmux new -s ${SESSIONNAME} -n script -d
+    #    tmux send-keys -t ${SESSIONNAME} "ssh flash" C-m
+    tmux send-keys -t ${SESSIONNAME} "cd ${SESSIONPATH}" C-m
+    if [[ ${VENVEXISTS} = true ]]; then
+        tmux send-keys -t ${SESSIONNAME} "ae ${VENVNAME}" C-m
+    fi
+    tmux splitw -h -p 66
+    tmux send-keys -t ${SESSIONNAME} "cd ${SESSIONPATH}" C-m
+    if [[ ${VENVEXISTS} = true ]]; then
+        tmux send-keys -t ${SESSIONNAME} "ae ${VENVNAME}" C-m
+    fi
+    tmux splitw -h -p 50
+    tmux send-keys -t ${SESSIONNAME} "cd ${SESSIONPATH}" C-m
+    if [[ ${VENVEXISTS} = true ]]; then
+        tmux send-keys -t ${SESSIONNAME} "ae ${VENVNAME}" C-m
+    fi
+    tmux selectp -t 0
+fi
+
+tmux attach -t ${SESSIONNAME}

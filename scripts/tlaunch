@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PROJECTNAME=${1}
+SESSIONNAME=${2}
+REPOPATH="/Users/priest2/workspace/${PROJECTNAME}/repos"
+CMAKE_EX="do_cmake_nautilus.sh"
+ONPATH=false
+for i in ${REPOPATH}/*; do
+    if [[ $(basename ${i}) == ${SESSIONNAME} ]]; then
+        ONPATH=true
+        break;
+    fi
+done
+if [ ${ONPATH} == false ]; then
+    echo "Name \"${SESSIONNAME}\" has no corresponding repository on ${REPOPATH} : "
+    ls ${REPOPATH}
+    exit;
+fi
+SESSIONPATH=${REPOPATH}/${SESSIONNAME}
+
+tmux has-session -t $SESSIONNAME &> /dev/null
+
+if [ $? != 0 ]
+ then
+    tmux new -s $SESSIONNAME -n script -d
+    tmux send-keys -t $SESSIONNAME "ssh flash" C-m
+    tmux splitw -h -p 55
+    tmux selectp -t 1
+    tmux send-keys -t $SESSIONNAME "cd ${SESSIONPATH}/build" C-m
+    tmux send-keys -t $SESSIONNAME "sh ${CMAKE_EX}" C-m
+    tmux send-keys -t $SESSIONNAME "make help" C-m
+    tmux splitw -v -p 55
+    tmux selectp -t 2
+    tmux send-keys -t $SESSIONNAME "cd ${SESSIONPATH}" C-m
+    tmux send-keys -t $SESSIONNAME "git status" C-m
+    tmux selectp -t 0
+fi
+
+tmux attach -t $SESSIONNAME
